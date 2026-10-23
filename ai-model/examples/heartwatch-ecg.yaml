@@ -1,0 +1,235 @@
+# yaml-language-server: $schema=../model-description.schema.json
+#
+# ─────────────────────────────────────────────────────────────────────────────
+# ILLUSTRATIVE EXAMPLE — mock data for format evaluation.
+# NOT a real model. Resembles a CVDLINK D4.1 "risk classifier / standalone
+# clinical system" model. All names, numbers, datasets and institutions are fictional.
+#
+# Type shown: predictive CLASSIFICATION delivered as a STANDALONE SYSTEM
+#   → activates the `task` module + `deployment` + `governance`.
+# ─────────────────────────────────────────────────────────────────────────────
+
+card_metadata:
+  card_version: "1.0.0"
+  card_language: en
+  card_publisher: "CVDLINK Consortium"
+
+identity:
+  system_name: "EXAMPLE — HeartWatch-ECG Arrhythmic Risk Classifier"
+  short_title: "EXAMPLE HeartWatch-ECG"
+  short_description: >-
+    A deep-learning model that estimates a patient's 12-month risk of a
+    life-threatening ventricular arrhythmia from a resting 12-lead ECG.
+    Illustrative example of a standalone clinical classifier.
+  version: "1.0.0"
+  modality: software
+  model_type: classification
+  artifact_role: standalone_system
+  ai_techniques:
+    - "Deep learning"
+    - "1D convolutional neural network"
+    - "Transformer encoder"
+    - "ECG signal processing"
+  keywords:
+    - cardiology
+    - ecg
+    - arrhythmia
+    - risk prediction
+    - deep learning
+
+provenance:
+  providers:
+    - "CVDLINK Consortium"
+  developers:
+    - "Meridian Cardiac AI Lab (example)"
+  contacts:
+    - name: "L. Ahonen (example)"
+      institution: "Meridian Cardiac AI Lab"
+      email: "l.ahonen@example.org"
+  funding: "EU Horizon Europe — CVDLINK (GA 101137278)"
+
+intended:
+  domain: "Healthcare — Cardiology"
+  purpose: "Estimate a patient's 12-month risk of a life-threatening ventricular arrhythmia from a resting 12-lead ECG, as decision support for cardiologists."
+  capability: "Supervised time-series classification on 12-lead ECG waveforms."
+  out_of_scope_uses:
+    - "Pediatric patients (under 18)"
+    - "Real-time or acute arrhythmia alarms"
+    - "Autonomous clinical decisions without physician review"
+    - "Patients with implanted pacemakers or defibrillators"
+  surrogate_marker:
+    predicts: false
+    details: "Predicts the clinical outcome (arrhythmic event within 12 months) directly, not a surrogate marker."
+
+io:
+  input_description: "Resting 12-lead ECG (10 seconds, 500 Hz), stored as a WFDB record."
+  output_description: "A 12-month arrhythmic-risk score in [0,1] with a 95% confidence interval and a high/low band."
+
+components:
+  - { name: "HeartWatch-Net", type: model, version: "1.0.0", documentation_link: "internal://models/heartwatch-net/model-card" }
+  - { name: "NordECG-Arrhythmia Cohort", type: dataset, version: "2.0.0", documentation_link: "internal://datasets/nordecg-arrhythmia/datasheet" }
+  - { name: "ECG Preprocessing Pipeline", type: system, version: "1.4.0", documentation_link: "internal://systems/ecg-preprocess/docs" }
+
+data:
+  datasets:
+    - name: "NordECG-Arrhythmia Cohort"
+      description: "Resting 12-lead ECG waveforms linked to 12-month arrhythmic-event outcome labels from hospital records."
+      cohort: >-
+        Adults referred to cardiology outpatient clinics with a suspected arrhythmia, enriched
+        for atrial fibrillation relative to the general population. Three Nordic centres.
+        Patients under 40 are sparsely represented and no paediatric patients are included.
+      origin: real
+      ethics_approval: true
+      availability: on_request
+      location_or_request: "Available to approved researchers via the CVDLINK Secure Processing Environment after data-access-committee review."
+      used_for_training: true
+      bias_checked: true
+      bias_details: "Checked for age and sex representation; mild under-representation of patients under 40 noted."
+      n_samples: "62000"
+      n_features: "5000"
+      preprocessing:
+        - "Baseline-wander removal"
+        - "Normalization"
+        - "Missing-lead handling"
+      personal_data: true
+      personal_data_category: "Health data (ECG recordings)"
+      dpia_conducted: true
+      non_personal_data: false
+      anonymised: true
+      licenced: true
+    - name: "EuroECG-Val (external)"
+      description: "Independent multi-site 12-lead ECG validation set with arrhythmic-event follow-up."
+      origin: real
+      ethics_approval: true
+      availability: restricted
+      location_or_request: "Held at partner sites; accessible only under a signed data-use agreement."
+      used_for_training: false
+      bias_checked: true
+      bias_details: "Site and device distribution reviewed; performance reported per site."
+      n_samples: "14500"
+      n_features: "5000"
+      personal_data: true
+      personal_data_category: "Health data (ECG recordings)"
+      dpia_conducted: true
+      non_personal_data: false
+      anonymised: true
+      licenced: true
+
+metrics:
+  - { name: "AUC-ROC", value: 0.81, range: "0-1", dataset: "NordECG-Arrhythmia Cohort", split: held_out, split_detail: "20% held-out test partition, split by patient", higher_is_better: true }
+  - { name: "AUC-ROC", value: 0.76, range: "0-1", dataset: "EuroECG-Val (external)", split: external_validation, higher_is_better: true }
+  - { name: "F1", value: 0.64, range: "0-1", dataset: "NordECG-Arrhythmia Cohort", split: held_out, split_detail: "20% held-out test partition, split by patient", higher_is_better: true }
+  - { name: "Sensitivity", value: 0.79, range: "0-1", dataset: "NordECG-Arrhythmia Cohort", split: held_out, split_detail: "20% held-out test partition, split by patient", higher_is_better: true }
+  - { name: "Specificity", value: 0.71, range: "0-1", dataset: "NordECG-Arrhythmia Cohort", split: held_out, split_detail: "20% held-out test partition, split by patient", higher_is_better: true }
+
+limitations:
+  known_limitations:
+    - "Trained mainly on a Northern-European population; generalisability elsewhere not yet validated."
+    - "Performance degrades on noisy ECGs (lead detachment, motion artefact)."
+    - "Not validated for patients with implanted cardiac devices."
+    - "12-month prediction horizon; not suitable for acute risk alerting."
+  groups_with_lower_performance:
+    - "Patients under 40 (under-represented in training data)."
+    - "Patients with atrial fibrillation (differing signal morphology)."
+
+reproducibility:
+  means_to_rerun:
+    provided: true
+    methods: ["Dockerfile", "requirements.txt", "README"]
+  source_code:
+    public: true
+    url: "https://github.com/example-org/heartwatch-ecg"
+    scm_used: true
+    license: "Apache-2.0"
+  simulator_code:
+    public: false
+  preprocessing_code:
+    public: true
+    url: "https://github.com/example-org/heartwatch-ecg/tree/main/preprocessing"
+  pretrained_model:
+    provided: false
+  execution_environment:
+    platforms: ["Linux"]
+    computing_resources: "GPU with at least 16 GB VRAM for training; inference runs on a regular CPU."
+
+method_detail:
+  hyperparameters: tuning
+  overfitting:
+    measures_taken: true
+    methods: ["Cross-validation", "Dropout", "L2 regularization"]
+    details: "5-fold cross-validation with dropout and weight decay."
+  trigger_situations:
+    checked: true
+    details: "Evaluated robustness to lead noise and device-shift confounders on held-out sites."
+  randomized_steps:
+    checked: true
+    details: "Fixed seeds; AUC varied by <1% across seeds."
+  baseline:
+    compared: true
+    details: "Compared against a logistic-regression model on handcrafted HRV features."
+  state_of_the_art:
+    compared: false
+    details: "No established public benchmark for 12-month arrhythmic-risk from a single resting ECG."
+
+# ── Gated: predictive model_type → `task` required ──
+task:
+  prediction_target: "Binary 12-month arrhythmic-event risk (high vs low)."
+  evaluation_protocol: "Held-out 20% test partition plus one external multi-site validation; AUC-ROC, F1, sensitivity and specificity reported."
+
+# ── Gated: artifact_role = standalone_system → `deployment` + `governance` required ──
+deployment:
+  deployer: "Hospital cardiology departments within the EU"
+  ai_subject: "Adult patients (age 18–85) undergoing a routine resting 12-lead ECG"
+  automation_level: human_in_the_loop
+  human_oversight: "A cardiologist reviews every risk score alongside clinical history before any decision; the model never triggers action autonomously."
+  actors:
+    - { role: "Cardiologist", intended: true, active: true, informed: true, control: correct }
+    - { role: "Primary care physician", intended: true, active: true, informed: true, control: opt_out }
+    - { role: "Patient", intended: true, active: false, informed: true, control: challenge }
+  risk_profile:
+    risks:
+      - impact_area: health_and_safety
+        likelihood: medium
+        severity: very_high
+        residual_risk: medium
+        mitigations: ["Decision-support only", "Clinician confirmation required", "Continuous performance monitoring"]
+      - impact_area: fundamental_rights
+        likelihood: low
+        severity: high
+        residual_risk: low
+        mitigations: ["Bias auditing across age and sex", "Patient transparency", "Human-in-the-loop"]
+      - impact_area: society
+        likelihood: low
+        severity: low
+        residual_risk: low
+        mitigations: ["Equity monitoring across deployment sites"]
+
+governance:
+  regulations:
+    - { name: "EU AI Act", jurisdiction: "EU", assessment_type: "High-risk (Annex III, medical) — conformity assessment pending" }
+    - { name: "GDPR", jurisdiction: "EU", assessment_type: "DPIA conducted" }
+    - { name: "EU MDR", jurisdiction: "EU", assessment_type: "Class IIa (provisional)" }
+  standards:
+    - { name: "ISO/IEC 42001", year: "2023", certifiable: true }
+    - { name: "ISO 14971", year: "2019", certifiable: true }
+  codes_of_conduct:
+    - "CVDLINK Responsible AI Guidelines"
+    - "Declaration of Helsinki"
+
+predetermined_changes:
+  - { subject: "Model weights (retraining)", frequency: "6 months", impact_on_performance: true, impact_on_risks: true }
+  - { subject: "Training dataset refresh", frequency: "12 months", impact_on_performance: true, impact_on_risks: true }
+
+# ── Optional: Privacy — AIMe-only field (NOT rendered on the AI Card; feeds the AIMe entry). ──
+# Applies here: the model is trained in a federated way across hospital nodes.
+privacy:
+  data_traces:
+    possible: true
+    elaboration: "Model weights could in principle retain traces of individual training ECGs; membership-inference risk was assessed as low after differentially private training."
+    techniques: ["Differential privacy"]
+  federated:
+    is_federated: true
+    shared_data: "Encrypted model gradient updates only; no raw ECG signals leave each hospital node."
+    communication: star_based
+    privacy_techniques: ["Secure multi-party computation (SMPC)", "Differential privacy"]
+    transmission_ratio: constant

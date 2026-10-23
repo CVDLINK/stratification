@@ -1,0 +1,230 @@
+# yaml-language-server: $schema=model-description.schema.json
+#
+# BLANK model description — fill it in once; the AI Card and the AIMe entry are both
+# projections of this file. Validated live against model-description.schema.json.
+#
+# ▸ Put the cursor after a field's colon and press Ctrl+Space for a dropdown of allowed
+#   values. Hover any field name for its description and rules. Allowed values for enum
+#   fields are also listed in the comment just above the field.
+# ▸ A few CVDLINK defaults are pre-filled (card_language, card_publisher, domain, one keyword).
+# ▸ Required-but-empty fields show a validation squiggle until you fill them — that is the
+#   checklist. `#` lines are hints, not data.
+# ▸ The `task`, `deployment` and `governance` blocks near the bottom ship commented out.
+#   If your model needs one, validation says so by name — uncomment that block.
+
+card_metadata:
+  card_version: ""
+  card_language: en                 # fixed: English
+  card_publisher: "CVDLINK Consortium"
+
+identity:
+  system_name: ""
+  # short_title: ""
+  # 16–512 characters
+  short_description: ""
+  version: ""
+  # software / safety_component / embedded_system
+  modality:
+  # classification / regression / segmentation / detection / retrieval / representation / discovery / generation / other
+  model_type:
+  # model_type_other: ""            # required only if model_type = other (free-text category)
+  # standalone_system / reusable_component / pipeline_stage / research_tool
+  artifact_role:
+  ai_techniques:
+    - ""
+  # 4–10 tags
+  keywords:
+    - cardiology
+
+provenance:
+  providers:
+    - ""
+  # developers:
+  #   - ""
+  contacts:
+    - name: ""
+      institution: ""
+      email: ""
+      # orcid: ""
+  # funding: ""
+  # paper_url: ""
+
+intended:
+  domain: "Cardiology"              # editable
+  purpose: ""
+  capability: ""
+  out_of_scope_uses:
+    - ""
+  surrogate_marker:
+    predicts:
+    # details: ""                   # required if predicts = true
+
+io:
+  input_description: ""
+  # What it returns — and, if anything downstream consumes it, what is extracted from it.
+  output_description: ""
+
+components:
+  - name: ""
+    # dataset / model / system / general_purpose
+    type:
+    # version: ""
+    # documentation_link: ""
+
+data:
+  datasets:
+    - name: ""
+      description: ""
+      # Who is in the data: pathology distribution, inclusion/exclusion criteria,
+      # demographics, number of sites. Say what is absent as well as present.
+      cohort: ""                    # required if used_for_training = true
+      # real / simulated / synthetic / proxy
+      origin:
+      # simulated_how: ""           # required if origin = simulated
+      # ethics_approval:            # required if origin = real
+      # public / on_request / restricted / none
+      availability:
+      # location_or_request: ""
+      used_for_training:
+      bias_checked:
+      # bias_details: ""            # required if bias_checked = true
+      n_samples: ""
+      n_features: ""
+      # preprocessing:
+      #   - ""
+      personal_data:
+      # personal_data_category: ""
+      # dpia_conducted:
+      # non_personal_data:
+      # anonymised:
+      # licenced:
+
+metrics:
+  - name: ""
+    value:
+    # range: ""
+    dataset: ""                     # which dataset, as named under data.datasets
+    # held_out / cross_validation / external_validation / bootstrap / other
+    split:
+    # split_detail: ""              # e.g. "5 folds, stratified by class"
+    # higher_is_better:
+
+limitations:
+  known_limitations:
+    - ""
+  # groups_with_lower_performance:
+  #   - ""
+
+reproducibility:                    # REQUIRED
+  means_to_rerun:
+    provided:
+    # methods:
+    #   - ""
+  source_code:
+    public:
+    # url: ""
+    # scm_used:
+    # license: ""                   # entered once here; also used by governance
+  simulator_code:
+    public:
+    # url: ""
+  preprocessing_code:
+    public:
+    # url: ""
+  pretrained_model:
+    provided:
+    # url: ""
+  execution_environment:
+    # platforms:
+    #   - ""
+    computing_resources: ""
+
+method_detail:                      # REQUIRED
+  # default / tuning / doesnt_apply
+  hyperparameters:
+  overfitting:
+    measures_taken:
+    # methods:
+    #   - ""
+    # details: ""
+  trigger_situations:
+    checked:
+    # details: ""
+  randomized_steps:
+    checked:
+    # details: ""
+  baseline:
+    compared:
+    # details: ""
+  state_of_the_art:
+    compared:
+    # details: ""
+
+# ── Gated: predictive model_type → `task` required (uncomment if predictive) ──
+# task:
+#   prediction_target: ""
+#   evaluation_protocol: ""
+
+# ── Gated: artifact_role = standalone_system → `deployment` + `governance` required
+#    (uncomment both blocks if standalone_system) ──
+# deployment:
+#   deployer: ""
+#   ai_subject: ""
+#   # fully_autonomous / partial_automation / human_in_the_loop / human_on_the_loop / fully_human_controlled
+#   automation_level:
+#   human_oversight: ""
+#   actors:
+#     - role: ""
+#       intended:
+#       active:
+#       informed:
+#       # control:                  # opt_in / opt_out / challenge / correct / reverse_ex_post / no_opt_out
+#   risk_profile:
+#     risks:
+#       # health_and_safety / fundamental_rights / society / environment
+#       - impact_area:
+#         # likelihood, severity and residual_risk each use: low / medium / high / very_high
+#         likelihood:
+#         severity:
+#         residual_risk:
+#         # mitigations:
+#         #   - ""
+
+# governance:
+#   regulations:
+#     - { name: "", jurisdiction: "", assessment_type: "" }
+#   standards:
+#     - { name: "", year: "", certifiable: }
+#   codes_of_conduct:
+#     - ""
+
+# ── Optional ──
+# predetermined_changes:
+#   - { subject: "", frequency: "", impact_on_performance: , impact_on_risks: }
+
+# ── Optional: Privacy — federated / data-trace models ──
+# privacy:
+#   data_traces:
+#     possible:
+#     elaboration: ""
+#     techniques:
+#       - ""
+#   federated:
+#     is_federated:
+#     shared_data: ""
+#     # star_based / peer_to_peer / other
+#     communication:
+#     privacy_techniques:
+#       - ""
+#     # unpredictable / constant / sub_linear / linear / super_linear
+#     transmission_ratio:
+
+# ── Optional: Epistasis — genomics / multi-omics models ──
+# epistasis:
+#   multi_loci:
+#     has_measure:
+#     description: ""
+#     convertible_to_or_rr:
+#   biological_levels:
+#     multiple:
+#     elaboration: ""

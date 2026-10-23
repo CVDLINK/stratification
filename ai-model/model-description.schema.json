@@ -1,0 +1,444 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cvdlink.eu/schema/model description-input.json",
+  "title": "CVDLINK Model Description (union of AI Card + AIMe)",
+  "description": "Fill this in once to describe your AI model. From it, both the EU-AI-Act AI Card (Golpayegani et al. 2024) and the AIMe registry entry are generated automatically — you do not fill either of those separately. A field is required here if either output requires it, which is why the Reproducibility and Method-detail sections are mandatory (AIMe requires them) while Privacy and Epistasis are optional. Each field's 'description' is guidance for you, the person filling the form. The routing to the AI Card section / AIMe field ID lives in a separate 'x-feeds' key that does not show in editor hovers.",
+  "type": "object",
+  "required": ["card_metadata", "identity", "provenance", "intended", "io", "components", "data", "metrics", "limitations", "reproducibility", "method_detail"],
+  "additionalProperties": true,
+
+  "properties": {
+    "card_metadata": {
+      "type": "object",
+      "required": ["card_version", "card_language", "card_publisher"],
+      "properties": {
+        "card_version": { "type": "string", "description": "Version of this description/record you are creating, e.g. 1.0.0. Increase it when you re-issue the description." },
+        "card_date": { "type": "string", "format": "date", "description": "Filled in automatically with the generation date — you do not enter this.", "x-feeds": "Card metadata" },
+        "card_language": { "type": "string", "const": "en", "description": "The description is written in English." },
+        "card_publisher": { "type": "string", "description": "The organisation publishing this description, e.g. CVDLINK Consortium." },
+        "identifier": { "type": "string", "description": "Optional — the DOI or permanent URL this model is published under, e.g. https://doi.org/10.5281/zenodo.1234567. Add it after your first release and regenerate: it becomes the card's identity, so the card can be cited and linked to its record. Until then the source-code URL is used.", "x-feeds": "Card metadata" },
+        "contact": { "type": "string", "description": "Contact email shown on the card. Optional — leave blank to reuse the first person listed under provenance → contacts.", "x-feeds": "Card header" },
+        "spec_url": { "type": "string", "description": "Filled in automatically with the link to the machine-readable file — you do not enter this.", "x-feeds": "Card metadata" }
+      }
+    },
+
+    "identity": {
+      "type": "object",
+      "required": ["system_name", "short_description", "version", "modality", "model_type", "artifact_role", "ai_techniques", "keywords"],
+      "properties": {
+        "system_name": { "type": "string", "description": "Full, human-readable name of the model or AI system.", "x-feeds": "Card §1 · AIMe MD.1" },
+        "short_title": { "type": "string", "description": "Optional short name or acronym for the AI, e.g. ECG-SCD.", "x-feeds": "AIMe MD.2" },
+        "short_description": { "type": "string", "description": "A plain one-paragraph summary of what the AI is (16–512 characters). Keep it distinct from the 'purpose' under intended use.", "x-feeds": "AIMe MD.3" },
+        "version": { "type": "string", "description": "Version of the model itself, e.g. 1.0.0." },
+        "modality": { "type": "string", "enum": ["software", "safety_component", "embedded_system"], "description": "How the AI is delivered: plain software, a safety component of a device, or embedded in hardware.", "x-feeds": "Card §1" },
+        "model_type": {
+          "type": "string",
+          "enum": ["classification", "regression", "segmentation", "detection", "retrieval", "representation", "discovery", "generation", "other"],
+          "description": "The kind of task the model performs. This choice decides which extra section you fill in later: a predictive type (classification, regression, segmentation, detection, retrieval, generation) asks for a 'task' block; 'representation' and 'discovery' ask for their own blocks. Pick 'other' if none fit — then describe it in model_type_other.",
+          "x-feeds": "AIMe P.3.1"
+        },
+        "model_type_other": { "type": "string", "description": "Describe the problem category in your own words. Required only when model_type is 'other'.", "x-feeds": "AIMe P.3.2" },
+        "artifact_role": { "type": "string", "enum": ["standalone_system", "reusable_component", "pipeline_stage", "research_tool"], "description": "What this artifact is in deployment terms. 'standalone_system' (a system used on/with people) additionally requires the deployment and governance sections; a reusable component, pipeline stage or research tool does not." },
+        "ai_techniques": { "type": "array", "items": { "type": "string" }, "minItems": 1, "description": "The AI / mathematical methods used, e.g. 'Convolutional neural network', 'Random forest'. Add at least one.", "x-feeds": "Card §1 · AIMe M.1" },
+        "keywords": { "type": "array", "items": { "type": "string" }, "minItems": 1, "description": "4 to 10 keywords/tags describing the AI, used for search in the registry.", "x-feeds": "AIMe MD.5" }
+      },
+      "allOf": [
+        {
+          "$comment": "model_type = other requires a free-text category (AIMe P.3.2 is mandatory when P.3.1 = Other).",
+          "if": { "required": ["model_type"], "properties": { "model_type": { "const": "other" } } },
+          "then": { "required": ["model_type_other"] }
+        }
+      ]
+    },
+
+    "provenance": {
+      "type": "object",
+      "required": ["providers", "contacts"],
+      "properties": {
+        "providers": { "type": "array", "items": { "type": "string" }, "minItems": 1, "description": "The organisation(s) responsible for the AI. Add at least one.", "x-feeds": "Card §1" },
+        "developers": { "type": "array", "items": { "type": "string" }, "description": "Optional — the teams or people who built it, if different from the providers.", "x-feeds": "Card §1" },
+        "contacts": {
+          "type": "array",
+          "minItems": 1,
+          "description": "People to contact about this AI — at least one, up to 16. Each needs a name, institution and email.",
+          "x-feeds": "AIMe MD.6",
+          "items": {
+            "type": "object",
+            "required": ["name", "institution", "email"],
+            "properties": {
+              "name": { "type": "string", "description": "Full name of the contact person." },
+              "institution": { "type": "string", "description": "The person's organisation or institution." },
+              "email": { "type": "string", "description": "Contact email address for this person." },
+              "orcid": { "type": "string", "description": "Optional — the person's ORCID iD.", "x-feeds": "AIMe MD.6" }
+            }
+          }
+        },
+        "funding": { "type": "string", "description": "Optional — funding sources relevant to the AI (grant names/numbers).", "x-feeds": "AIMe MD.7" },
+        "paper_url": { "type": "string", "description": "Optional — link or stable ID (e.g. DOI) of a paper describing the AI.", "x-feeds": "AIMe MD.4" }
+      }
+    },
+
+    "intended": {
+      "type": "object",
+      "required": ["domain", "purpose", "capability", "out_of_scope_uses", "surrogate_marker"],
+      "properties": {
+        "domain": { "type": "string", "description": "The application area, e.g. Cardiology.", "x-feeds": "Card §2" },
+        "purpose": { "type": "string", "description": "What the AI is designed to do — what it learns or predicts, in plain terms.", "x-feeds": "Card §2 · AIMe P.1" },
+        "capability": { "type": "string", "description": "The technical capability — how it does it, e.g. 'time-series classification on ECG waveforms'.", "x-feeds": "Card §2" },
+        "out_of_scope_uses": { "type": "array", "items": { "type": "string" }, "minItems": 1, "description": "Uses the AI is NOT intended for and should not be used for. List at least one.", "x-feeds": "Card §2" },
+        "surrogate_marker": {
+          "type": "object",
+          "description": "Does the AI predict a surrogate marker (a stand-in measure) rather than the true clinical outcome?",
+          "x-feeds": "AIMe P.2",
+          "required": ["predicts"],
+          "properties": {
+            "predicts": { "type": "boolean", "description": "true if the AI predicts a surrogate marker instead of the true outcome; otherwise false." },
+            "details": { "type": "string", "description": "If it predicts a surrogate marker, describe it here." }
+          }
+        }
+      }
+    },
+
+    "io": {
+      "type": "object",
+      "required": ["input_description", "output_description"],
+      "properties": {
+        "input_description": { "type": "string", "description": "What the AI takes as input — data type and format, e.g. '12-lead ECG, 10 s at 500 Hz'.", "x-feeds": "Card §3" },
+        "output_description": { "type": "string", "description": "What the AI returns, and — if anything downstream consumes it — what is extracted from it.", "x-feeds": "Card §3" }
+      }
+    },
+
+    "components": {
+      "type": "array",
+      "minItems": 1,
+      "description": "The building blocks the system is made of — datasets, models, general-purpose AI, or sub-systems. List at least one.",
+      "x-feeds": "Card §3",
+      "items": {
+        "type": "object",
+        "required": ["name", "type"],
+        "properties": {
+          "name": { "type": "string", "description": "Name of this component." },
+          "type": { "type": "string", "enum": ["dataset", "model", "system", "general_purpose"], "description": "What kind of component it is." },
+          "version": { "type": "string", "description": "Optional — version of the component." },
+          "documentation_link": { "type": "string", "description": "Optional — link to its documentation or datasheet." }
+        }
+      }
+    },
+
+    "data": {
+      "type": "object",
+      "description": "The dataset(s) the AI was built and evaluated on. This section feeds both the AI Card and the AIMe registry, so it asks for a little more detail than the card alone.",
+      "x-feeds": "Card §4 + AIMe D",
+      "required": ["datasets"],
+      "properties": {
+        "datasets": {
+          "type": "array",
+          "minItems": 1,
+          "description": "Add one entry per dataset.",
+          "items": {
+            "type": "object",
+            "required": ["name", "description", "origin", "availability", "used_for_training", "bias_checked", "n_samples", "n_features", "personal_data"],
+            "allOf": [
+              {
+                "$comment": "Training data must state who is in the cohort — it defines the model's domain of validity.",
+                "if": { "required": ["used_for_training"], "properties": { "used_for_training": { "const": true } } },
+                "then": { "required": ["cohort"] }
+              }
+            ],
+            "properties": {
+              "name": { "type": "string", "description": "Name of the dataset.", "x-feeds": "AIMe D.1" },
+              "description": { "type": "string", "description": "What kind of data it is, e.g. '12-lead ECG waveforms with outcome labels'.", "x-feeds": "AIMe D.1" },
+              "cohort": { "type": "string", "description": "Who is in the data — pathology distribution, inclusion/exclusion criteria, demographics, number of sites. State what is absent as well as present. Required for training data: it defines the domain the model performs well in.", "x-feeds": "Card §4" },
+              "origin": { "type": "string", "enum": ["real", "simulated", "synthetic", "proxy"], "description": "Is the data real, simulated, synthetic, or a proxy?", "x-feeds": "AIMe D.2.1" },
+              "simulated_how": { "type": "string", "description": "If the data is simulated, explain how it was generated. (Answer this when origin is 'simulated'.)", "x-feeds": "AIMe D.2.2" },
+              "ethics_approval": { "type": "boolean", "description": "Did collecting this data require ethics-committee approval? (Answer this when the data is real.)", "x-feeds": "AIMe D.2.3" },
+              "availability": { "type": "string", "enum": ["public", "on_request", "restricted", "none"], "description": "Can others get the data — publicly, on request, only under restriction, or not at all?", "x-feeds": "AIMe D.3.1" },
+              "location_or_request": { "type": "string", "description": "Where the data can be found (if public) or how to request access (if on request).", "x-feeds": "AIMe D.3.2 / D.3.3" },
+              "used_for_training": { "type": "boolean", "description": "Was this dataset used to train the model? (false if used only for testing/validation.)", "x-feeds": "AIMe D.4" },
+              "bias_checked": { "type": "boolean", "description": "Did you check the data for biases?", "x-feeds": "AIMe D.5.1" },
+              "bias_details": { "type": "string", "description": "If you checked for bias, describe how you checked and what you concluded.", "x-feeds": "AIMe D.5.2" },
+              "n_samples": { "type": "string", "description": "Number of samples/records in the dataset, e.g. '50000'.", "x-feeds": "AIMe D.6.1" },
+              "n_features": { "type": "string", "description": "Number of features per sample, e.g. '5000'.", "x-feeds": "AIMe D.6.2" },
+              "preprocessing": { "type": "array", "items": { "type": "string" }, "description": "Optional — the preprocessing steps applied, e.g. 'Normalization', 'Missing-data handling'.", "x-feeds": "AIMe D.7" },
+              "personal_data": { "type": "boolean", "description": "Does the dataset contain personal data (GDPR)?", "x-feeds": "Card §4" },
+              "personal_data_category": { "type": "string", "description": "Optional — if personal data, which category, e.g. 'Health data'." },
+              "dpia_conducted": { "type": "boolean", "description": "Optional — was a Data Protection Impact Assessment (DPIA) conducted?" },
+              "non_personal_data": { "type": "boolean", "description": "Optional — true if the dataset contains no personal data." },
+              "anonymised": { "type": "boolean", "description": "Optional — is the data anonymised or pseudonymised?" },
+              "licenced": { "type": "boolean", "description": "Optional — is the data covered by a licence or data-use agreement?" }
+            }
+          }
+        }
+      }
+    },
+
+    "metrics": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Performance results — any metric you report, with its value. Not limited to 0–1 scores; Dice, AUC, MAE, enrichment p-values etc. all fit. Add at least one.",
+      "x-feeds": "Card §7 · AIMe M.3",
+      "items": {
+        "type": "object",
+        "required": ["name", "value", "dataset", "split"],
+        "properties": {
+          "name": { "type": "string", "description": "Name of the metric, e.g. 'AUC-ROC' or 'Dice'." },
+          "value": { "type": "number", "description": "The measured value (a number)." },
+          "range": { "type": "string", "description": "Optional — the possible range of the metric, e.g. '0-1'." },
+          "dataset": { "type": "string", "description": "Which dataset this value was measured on — name it as it appears under data.datasets." },
+          "split": { "type": "string", "enum": ["held_out", "cross_validation", "external_validation", "bootstrap", "other"], "description": "How that data was partitioned to produce this value. Pick one; it is not interchangeable with 'dataset'." },
+          "split_detail": { "type": "string", "description": "Optional — specifics of the split, e.g. '5 folds, stratified by class'." },
+          "higher_is_better": { "type": "boolean", "description": "Optional — true if a higher value is better." }
+        }
+      }
+    },
+
+    "limitations": {
+      "type": "object",
+      "required": ["known_limitations"],
+      "properties": {
+        "known_limitations": { "type": "array", "items": { "type": "string" }, "minItems": 1, "description": "Known limitations of the AI — where it does not work well or should be used with caution. List at least one.", "x-feeds": "Card §10" },
+        "groups_with_lower_performance": { "type": "array", "items": { "type": "string" }, "description": "Optional — groups or subpopulations where performance is lower.", "x-feeds": "≈ AIMe D.5" }
+      }
+    },
+
+    "predetermined_changes": {
+      "type": "array",
+      "description": "Optional (EU AI Act) — planned changes the system will undergo after release, e.g. scheduled retraining.",
+      "x-feeds": "Card §8",
+      "items": {
+        "type": "object",
+        "required": ["subject", "frequency"],
+        "properties": {
+          "subject": { "type": "string", "description": "What will change, e.g. 'model weights' or 'training dataset'." },
+          "frequency": { "type": "string", "description": "How often it will change, e.g. 'every 6 months'." },
+          "impact_on_performance": { "type": "boolean", "description": "Optional — will the change affect performance?" },
+          "impact_on_risks": { "type": "boolean", "description": "Optional — will the change affect the risk profile?" }
+        }
+      }
+    },
+
+    "governance": {
+      "type": "object",
+      "description": "Regulations, standards and codes of conduct the AI follows. Required for standalone systems. Note: the code licence is entered once under reproducibility → source_code, not here.",
+      "x-feeds": "Card §9",
+      "properties": {
+        "regulations": {
+          "type": "array",
+          "description": "Optional — regulations the AI is subject to.",
+          "items": { "type": "object", "properties": { "name": { "type": "string", "description": "Name of the regulation, e.g. 'EU AI Act' or 'GDPR'." }, "jurisdiction": { "type": "string", "description": "Where it applies, e.g. 'EU'." }, "assessment_type": { "type": "string", "description": "The type of conformity assessment, or its current status." } } }
+        },
+        "standards": {
+          "type": "array",
+          "description": "Optional — standards the AI conforms to.",
+          "items": { "type": "object", "required": ["name"], "properties": { "name": { "type": "string", "description": "Name of the standard, e.g. 'ISO/IEC 42001'." }, "year": { "type": "string", "description": "Optional — year or version of the standard." }, "certifiable": { "type": "boolean", "description": "Optional — true if you can be certified against it." } } }
+        },
+        "codes_of_conduct": { "type": "array", "items": { "type": "string" }, "description": "Optional — voluntary codes of conduct the AI adheres to." }
+      }
+    },
+
+    "task": { "$ref": "#/$defs/task" },
+    "representation": { "$ref": "#/$defs/representation" },
+    "discovery": { "$ref": "#/$defs/discovery" },
+    "deployment": { "$ref": "#/$defs/deployment" },
+    "reproducibility": { "$ref": "#/$defs/reproducibility" },
+    "method_detail": { "$ref": "#/$defs/method_detail" },
+    "privacy": { "$ref": "#/$defs/privacy" },
+    "epistasis": { "$ref": "#/$defs/epistasis" }
+  },
+
+  "allOf": [
+    {
+      "$comment": "Predictive archetypes require the task module.",
+      "if": { "required": ["identity"], "properties": { "identity": { "required": ["model_type"], "properties": { "model_type": { "enum": ["classification", "regression", "segmentation", "detection", "retrieval", "generation"] } } } } },
+      "then": { "required": ["task"] }
+    },
+    {
+      "$comment": "Foundation/backbone models require the representation module.",
+      "if": { "required": ["identity"], "properties": { "identity": { "required": ["model_type"], "properties": { "model_type": { "const": "representation" } } } } },
+      "then": { "required": ["representation"] }
+    },
+    {
+      "$comment": "Unsupervised tools require the discovery module.",
+      "if": { "required": ["identity"], "properties": { "identity": { "required": ["model_type"], "properties": { "model_type": { "const": "discovery" } } } } },
+      "then": { "required": ["discovery"] }
+    },
+    {
+      "$comment": "Standalone systems require deployment + governance (EU AI Act).",
+      "if": { "required": ["identity"], "properties": { "identity": { "required": ["artifact_role"], "properties": { "artifact_role": { "const": "standalone_system" } } } } },
+      "then": { "required": ["deployment", "governance"] }
+    }
+  ],
+
+  "$defs": {
+    "task": {
+      "type": "object",
+      "title": "Predictive task",
+      "description": "Required when model_type is a predictive type (classification, regression, segmentation, detection, retrieval, generation).",
+      "required": ["prediction_target", "evaluation_protocol"],
+      "properties": {
+        "prediction_target": { "type": "string", "description": "What the model predicts, as a target, e.g. 'binary high/low SCD risk'.", "x-feeds": "Card §2 (AIMe reuses intended.purpose)" },
+        "evaluation_protocol": { "type": "string", "description": "How the model was evaluated, e.g. '5-fold cross-validation on a held-out test set'.", "x-feeds": "Card §7 (AIMe reuses method_detail)" }
+      }
+    },
+    "representation": {
+      "type": "object",
+      "title": "Representation / foundation model",
+      "description": "Required when model_type is 'representation' (a backbone/embedding model).",
+      "required": ["pretraining_objective", "embeds", "downstream_tasks"],
+      "properties": {
+        "pretraining_objective": { "type": "string", "description": "What the model was pre-trained to do (its training/self-supervised objective).", "x-feeds": "Card §2" },
+        "embeds": { "type": "string", "description": "What the model encodes into representations/embeddings (the input it turns into vectors).", "x-feeds": "Card §3" },
+        "downstream_tasks": { "type": "array", "items": { "type": "string" }, "minItems": 1, "description": "Tasks the representations are meant to support downstream. List at least one.", "x-feeds": "Card §3" },
+        "fine_tuning_methods": { "type": "array", "items": { "type": "string" }, "description": "Optional — recommended ways to fine-tune or adapt the model.", "x-feeds": "Card §2" }
+      }
+    },
+    "discovery": {
+      "type": "object",
+      "title": "Unsupervised discovery",
+      "description": "Required when model_type is 'discovery' (an unsupervised tool).",
+      "required": ["discovers", "validation_method"],
+      "properties": {
+        "discovers": { "type": "string", "description": "What the model discovers or surfaces, e.g. subtypes, clusters, patterns.", "x-feeds": "Card §2" },
+        "validation_method": { "type": "string", "description": "How the discovered findings were validated.", "x-feeds": "Card §7" },
+        "produces_decisions": { "type": "boolean", "description": "Optional — true if its output is used to make decisions about people.", "x-feeds": "Card §5" }
+      }
+    },
+    "deployment": {
+      "type": "object",
+      "title": "Deployment, human involvement & risk",
+      "description": "Required when artifact_role is 'standalone_system'. Describes who deploys the system, who it affects, how humans oversee it, and its EU AI Act risk profile.",
+      "required": ["deployer", "ai_subject", "automation_level", "human_oversight", "actors", "risk_profile"],
+      "properties": {
+        "deployer": { "type": "string", "description": "Who deploys and operates the system in practice, e.g. 'Hospital cardiology departments in the EU'." },
+        "ai_subject": { "type": "string", "description": "Who the AI is used on or makes decisions about, e.g. 'Adult patients undergoing ECG'." },
+        "automation_level": { "type": "string", "enum": ["fully_autonomous", "partial_automation", "human_in_the_loop", "human_on_the_loop", "fully_human_controlled"], "description": "How much the system acts without a human, from fully autonomous to fully human-controlled." },
+        "human_oversight": { "type": "string", "description": "Describe how humans oversee the system and can intervene in its operation." },
+        "actors": {
+          "type": "array",
+          "minItems": 1,
+          "description": "The people/roles involved with the system. Add one entry per role.",
+          "items": {
+            "type": "object",
+            "required": ["role", "intended", "active", "informed"],
+            "properties": {
+              "role": { "type": "string", "description": "The role, e.g. 'Cardiologist' or 'Patient'." },
+              "intended": { "type": "boolean", "description": "Is this role an intended user of the system?" },
+              "active": { "type": "boolean", "description": "Does this role actively operate the system (rather than only being affected by it)?" },
+              "informed": { "type": "boolean", "description": "Is this role informed that the AI is being used?" },
+              "control": { "type": "string", "enum": ["opt_in", "opt_out", "challenge", "correct", "reverse_ex_post", "no_opt_out"], "description": "Optional — what control this role has over the outcome." }
+            }
+          }
+        },
+        "risk_profile": {
+          "type": "object",
+          "description": "The risks the system poses and how they are mitigated (EU AI Act).",
+          "required": ["risks"],
+          "properties": {
+            "risks": {
+              "type": "array",
+              "minItems": 1,
+              "description": "Add one entry per risk.",
+              "items": {
+                "type": "object",
+                "required": ["impact_area", "likelihood", "severity", "residual_risk"],
+                "properties": {
+                  "impact_area": { "type": "string", "enum": ["health_and_safety", "fundamental_rights", "society", "environment"], "description": "Which area the risk affects." },
+                  "likelihood": { "type": "string", "enum": ["low", "medium", "high", "very_high"], "description": "How likely the risk is to occur." },
+                  "severity": { "type": "string", "enum": ["low", "medium", "high", "very_high"], "description": "How severe the harm would be if it occurs." },
+                  "residual_risk": { "type": "string", "enum": ["low", "medium", "high", "very_high"], "description": "The risk that remains after your mitigations." },
+                  "mitigations": { "type": "array", "items": { "type": "string" }, "description": "Optional — measures taken to reduce this risk." }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "reproducibility": {
+      "type": "object",
+      "title": "Reproducibility (required)",
+      "description": "Can others re-run your AI? Required — this is a mandatory AIMe section.",
+      "required": ["means_to_rerun", "source_code", "simulator_code", "preprocessing_code", "pretrained_model", "execution_environment"],
+      "properties": {
+        "means_to_rerun": {
+          "type": "object",
+          "description": "Do you provide everything (including dependencies) needed to easily re-run the AI?",
+          "x-feeds": "AIMe R.1",
+          "required": ["provided"],
+          "properties": { "provided": { "type": "boolean", "description": "true if you provide the means to re-run it." }, "methods": { "type": "array", "items": { "type": "string" }, "description": "Optional — which means you provide, e.g. 'Dockerfile', 'requirements.txt', 'README'." } }
+        },
+        "source_code": {
+          "type": "object",
+          "description": "The AI's main source code. This is also where you enter the code licence — once — which is reused by the governance section.",
+          "x-feeds": "AIMe R.2.1",
+          "required": ["public"],
+          "properties": {
+            "public": { "type": "boolean", "description": "Is the main source code publicly available?" },
+            "url": { "type": "string", "description": "Where the source code can be found." },
+            "scm_used": { "type": "boolean", "description": "Did you use version control such as Git?", "x-feeds": "AIMe R.2.1.3" },
+            "license": { "type": "string", "description": "The licence the code is published under, e.g. 'Apache-2.0'. Entered once here and reused for governance.", "x-feeds": "AIMe R.2.1.4 + Card §9" }
+          }
+        },
+        "simulator_code": { "type": "object", "description": "Source code of any data simulator. If you have no simulator, set public to false and leave the URL blank.", "x-feeds": "AIMe R.2.2", "required": ["public"], "properties": { "public": { "type": "boolean", "description": "Is the data-simulation code publicly available?" }, "url": { "type": "string", "description": "Where the simulator code can be found." } } },
+        "preprocessing_code": { "type": "object", "description": "Source code of the preprocessing pipeline.", "x-feeds": "AIMe R.2.3", "required": ["public"], "properties": { "public": { "type": "boolean", "description": "Is the preprocessing code publicly available?" }, "url": { "type": "string", "description": "Where the preprocessing code can be found." } } },
+        "pretrained_model": {
+          "type": "object",
+          "description": "A ready-to-use trained model.",
+          "x-feeds": "AIMe R.3",
+          "required": ["provided"],
+          "properties": { "provided": { "type": "boolean", "description": "Do you provide a pre-trained model?" }, "url": { "type": "string", "description": "Where the pre-trained model can be found." } }
+        },
+        "execution_environment": {
+          "type": "object",
+          "description": "What is needed to run the AI.",
+          "x-feeds": "AIMe R.4",
+          "required": ["computing_resources"],
+          "properties": { "platforms": { "type": "array", "items": { "type": "string" }, "description": "Optional — operating systems/platforms it runs on, e.g. 'Linux'." }, "computing_resources": { "type": "string", "description": "Describe the computing resources needed — say if it needs more than a regular PC, e.g. 'GPU with 16 GB VRAM for training; CPU for inference'." } }
+        }
+      }
+    },
+    "method_detail": {
+      "type": "object",
+      "title": "Method detail (required)",
+      "description": "How the AI was built and evaluated. Required — this is a mandatory AIMe section.",
+      "required": ["hyperparameters", "overfitting", "trigger_situations", "randomized_steps", "baseline", "state_of_the_art"],
+      "properties": {
+        "hyperparameters": { "type": "string", "enum": ["default", "tuning", "doesnt_apply"], "description": "How you chose the model's hyper-parameters: used defaults, tuned them, or not applicable.", "x-feeds": "AIMe M.2" },
+        "overfitting": { "type": "object", "description": "Measures taken against overfitting.", "x-feeds": "AIMe M.4", "required": ["measures_taken"], "properties": { "measures_taken": { "type": "boolean", "description": "Did you take measures to prevent overfitting?" }, "methods": { "type": "array", "items": { "type": "string" }, "description": "Optional — which measures, e.g. 'Cross-validation', 'Regularization'." }, "details": { "type": "string", "description": "Optional — elaborate on how you prevented overfitting." } } },
+        "trigger_situations": { "type": "object", "description": "Checks for situations (e.g. confounders) that could make the AI fail.", "x-feeds": "AIMe M.5", "required": ["checked"], "properties": { "checked": { "type": "boolean", "description": "Did you check for trigger/failure situations?" }, "details": { "type": "string", "description": "Optional — describe what you checked and found." } } },
+        "randomized_steps": { "type": "object", "description": "Effect of randomised steps on the stability of results.", "x-feeds": "AIMe M.6", "required": ["checked"], "properties": { "checked": { "type": "boolean", "description": "Did you check whether randomised steps affect result stability?" }, "details": { "type": "string", "description": "Optional — describe the effect, e.g. variation across random seeds." } } },
+        "baseline": { "type": "object", "description": "Comparison against a simple baseline model.", "x-feeds": "AIMe M.7", "required": ["compared"], "properties": { "compared": { "type": "boolean", "description": "Did you compare against a simple baseline?" }, "details": { "type": "string", "description": "Optional — describe the baseline comparison." } } },
+        "state_of_the_art": { "type": "object", "description": "Comparison against state-of-the-art approaches.", "x-feeds": "AIMe M.8", "required": ["compared"], "properties": { "compared": { "type": "boolean", "description": "Did you compare against state-of-the-art methods?" }, "details": { "type": "string", "description": "Optional — describe the comparison." } } }
+      }
+    },
+    "privacy": {
+      "type": "object",
+      "title": "Privacy (optional)",
+      "description": "Optional — fill in only if it applies, e.g. federated training or a risk that the model retains traces of training data. Relevant to CVDLINK's federated models.",
+      "properties": {
+        "data_traces": { "type": "object", "description": "Whether the trained model could contain traces of individual training data.", "x-feeds": "AIMe PR.1", "properties": { "possible": { "type": "boolean", "description": "Could the model contain data points (or parts) of the training data?" }, "elaboration": { "type": "string", "description": "Explain the possible data traces — or why there cannot be any." }, "techniques": { "type": "array", "items": { "type": "string" }, "description": "Optional — privacy techniques applied during local training, e.g. 'Differential privacy'." } } },
+        "federated": {
+          "type": "object",
+          "description": "Federated / multi-party training details.",
+          "x-feeds": "AIMe PR.2",
+          "properties": {
+            "is_federated": { "type": "boolean", "description": "Is the model trained in a federated way with other participants?" },
+            "shared_data": { "type": "string", "description": "What data is shared between participants?" },
+            "communication": { "type": "string", "enum": ["star_based", "peer_to_peer", "other"], "description": "How participants communicate." },
+            "privacy_techniques": { "type": "array", "items": { "type": "string" }, "description": "Optional — privacy techniques used during federated training, e.g. secure multi-party computation, homomorphic encryption, differential privacy." },
+            "transmission_ratio": { "type": "string", "enum": ["unpredictable", "constant", "sub_linear", "linear", "super_linear"], "description": "How the amount of transmitted data relates to the training data over all iterations." }
+          }
+        }
+      }
+    },
+    "epistasis": {
+      "type": "object",
+      "title": "Epistasis (optional)",
+      "description": "Optional — for genomics / multi-omics models only. Leave this section out if it does not apply.",
+      "properties": {
+        "multi_loci": { "type": "object", "description": "Joint importance of multiple genetic loci.", "x-feeds": "AIMe EP.1", "properties": { "has_measure": { "type": "boolean", "description": "Is there a measure/procedure capturing the joint importance of multiple loci?" }, "description": { "type": "string", "description": "Which measure or procedure was applied?" }, "convertible_to_or_rr": { "type": "boolean", "description": "Can it be converted into an odds ratio or relative risk?" } } },
+        "biological_levels": { "type": "object", "description": "Multiple affected biological levels.", "x-feeds": "AIMe EP.2", "properties": { "multiple": { "type": "boolean", "description": "Does the AI account for multiple affected biological levels?" }, "elaboration": { "type": "string", "description": "Describe the affected levels." } } }
+      }
+    }
+  }
+}

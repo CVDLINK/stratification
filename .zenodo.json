@@ -1,0 +1,27 @@
+{
+  "title": "<Project name>",
+  "description": "<One-paragraph description of the project and its intended use.>",
+  "upload_type": "software",
+  "access_right": "open",
+  "license": "mit",
+  "language": "eng",
+  "creators": [
+    {
+      "name": "Lastname, Firstname",
+      "affiliation": "<Institution>",
+      "orcid": "0000-0000-0000-0000"
+    }
+  ],
+  "contributors": [
+    {
+      "name": "Lastname, Firstname",
+      "affiliation": "<Institution>",
+      "type": "ProjectMember"
+    }
+  ],
+  "keywords": ["CVDLINK", "cardiovascular", "machine learning"],
+  "grants": [
+    { "id": "10.13039/501100000780::101137278" }
+  ],
+  "communities": [{ "identifier": "cvdlink" }]
+}
