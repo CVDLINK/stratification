@@ -6,6 +6,6 @@ version corresponds to a GitHub release that is archived to Zenodo.
 
 ## [Unreleased]
 
-## [0.1.0] - YYYY-MM-DD
+## [0.1.0] - 2026-10-23
 ### Added
-- First shareable version of this project.
+- README
