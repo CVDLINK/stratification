@@ -8,18 +8,15 @@
   "creators": [
     {
       "name": "Laurila, Amanda",
-      "affiliation": "Veracell",
-      "orcid": "0000-0000-0000-0000"
+      "affiliation": "Veracell"
     },
     {
       "name": "Shehroz, Khan",
-      "affiliation": "Veracell",
-      "orcid": "0000-0000-0000-0001"
+      "affiliation": "Veracell"
     },
     {
       "name": "Kenichi, Nakayama",
-      "affiliation": "Veracell",
-      "orcid": "0000-0000-0000-0002"
+      "affiliation": "Veracell"
     }
   ],
   "keywords": ["CVDLINK", "cardiovascular", "machine learning", "stratification"],
