@@ -54,4 +54,4 @@ Veracell Oy · amanda.laurila@veracell.com
 
 ## How to cite
 
-Once this repo is archived to Zenodo, add the DOI here (citation metadata lives in `.zenodo.json`).
+[![DOI](https://zenodo.org/badge/1430927894.svg)](https://doi.org/10.5281/zenodo.23603074)
