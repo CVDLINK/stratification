@@ -21,7 +21,3 @@ data/
 secrets*
 # Exempt: evaluation results you mean to publish
 !results/**/*.csv
-# AIMe report credentials (contain report passwords)
-reports.json
-# Generator build artifacts (the AI Card itself is committed, at ai-model/)
-ai-model/generators/*/output/

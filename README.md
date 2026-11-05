@@ -16,7 +16,7 @@ It runs identically on the FeatureCloud coordinator and every participant.
 
 `prototype`  <!-- one of: experimental | prototype | stable | archived | data-only -->
 
-## Inputs / outputs — *for a model or tool*
+## Inputs / outputs
 
 - **Input:**
     - **`config.yml`**: FeatureCloud workflow config file<br />
